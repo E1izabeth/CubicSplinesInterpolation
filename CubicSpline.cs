@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TestMySpline
+namespace CubicSplinesInterpolation
 {
     /// <summary>
     /// Cubic spline interpolation.
@@ -205,10 +205,9 @@ namespace TestMySpline
         /// <param name="y">Input. Y coordinates to fit.</param>
         /// <param name="xs">Input. X coordinates to evaluate the fitted curve at.</param>
         /// <returns>The computed y values for each xs.</returns>
-        public static double[] Compute(double[] x, double[] y, double[] xs)
+        public double[] Compute(double[] x, double[] y, double[] xs)
         {
-            CubicSpline spline = new CubicSpline();
-            return spline.FitAndEval(x, y, xs);
+            return this.FitAndEval(x, y, xs);
         }
 
         /// <summary>
@@ -222,37 +221,15 @@ namespace TestMySpline
         /// <param name="ys">Output (interpolated) y values.</param>
         public void FitParametric(double[] x, double[] y, int nOutputPoints, out double[] xs, out double[] ys)
         {
-            // Compute distances
-            int n = x.Length;
-            double[] dists = new double[n]; // cumulative distance
-            dists[0] = 0;
-            double totalDist = 0;
-
-            for (int i = 1; i < n; i++)
+            xs = new double[nOutputPoints];
+            var step = Math.Abs(x[0] - x[x.Length - 1]) / nOutputPoints;
+            for (int i = 0; i < nOutputPoints; i++)
             {
-                double dx = x[i] - x[i - 1];
-                double dy = y[i] - y[i - 1];
-                double dist = (double)Math.Sqrt(dx * dx + dy * dy);
-                totalDist += dist;
-                dists[i] = totalDist;
+                xs[i] = x[0] + i * step;
             }
-
-            // Create 'times' to interpolate to
-            double dt = totalDist / (nOutputPoints - 1);
-            double[] times = new double[nOutputPoints];
-            times[0] = 0;
-
-            for (int i = 1; i < nOutputPoints; i++)
-            {
-                times[i] = times[i - 1] + dt;
-            }
-
-            // Spline fit both x and y to times
-            CubicSpline xSpline = new CubicSpline();
-            xs = xSpline.FitAndEval(dists, x, times);
-
-            CubicSpline ySpline = new CubicSpline();
-            ys = ySpline.FitAndEval(dists, y, times);
+            ys = this.Compute(x, y, xs);
+            //CubicSpline ySpline = new CubicSpline();
+            //ys = ySpline.FitAndEval(dists, y, times);
         }
     }
 }

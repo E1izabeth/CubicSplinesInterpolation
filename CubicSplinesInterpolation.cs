@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 
-namespace TestMySpline
+namespace CubicSplinesInterpolation
 {
     public partial class CubicSplinesInterpolation : Form
     {
+        public CubicSpline Spl { get; private set; }
         public CubicSplinesInterpolation()
         {
+            this.Spl = new CubicSpline();
             InitializeComponent();
         }
 
@@ -39,11 +41,8 @@ namespace TestMySpline
             }
         }
 
-        private static Chart TestSplineExample(Chart chart, double[] x, Func<double, double> func)
+        private Chart TestSplineExample(/*CubicSpline spl, */Chart chart, double[] x, Func<double, double> func)
         {
-            CubicSpline spl = new CubicSpline();
-
-
             double[] y = new double[x.Length];
 
             for (int i = 0; i < x.Length; i++)
@@ -51,8 +50,7 @@ namespace TestMySpline
                 y[i] = func(x[i]);
             }
 
-            double[] xs, ys;
-            spl.FitParametric(x, y, 1000, out xs, out ys);
+            this.Spl.FitParametric(x, y, 1000, out double[] xs, out double[] ys);
 
             double[] xO = new double[x.Length * 10];
             double[] yO = new double[x.Length * 10];
@@ -150,22 +148,25 @@ namespace TestMySpline
             switch (listBox1.SelectedIndex)
             {
                 case 0:
-                    TestSplineExample(chart1, new double[] { 0, 2, 4, 7 }, Math.Sin);
+                    this.TestSplineExample(chart1, new double[] { 0, 2, 4, 7 }, Math.Sin);
                     break;
                 case 1:
-                    TestSplineExample(chart1, new double[] { 0, 1, 2, 3, 4, 5, 6, 7}, Math.Sin);
+                    this.TestSplineExample(chart1, new double[] { 0, 1, 2, 3, 4, 5, 6, 7}, Math.Sin);
                     break;
                 case 2:
-                    TestSplineExample(chart1, new double[] { -5, 1, 2, 3, 4, 5, 6, 7 }, Math.Sin);
+                    this.TestSplineExample(chart1, new double[] { -5, 1, 2, 3, 4, 5, 6, 7 }, Math.Sin);
                     break;
                 case 3:
-                    TestSplineExample(chart1, new double[] { -3, -2, -1, 0, 1, 2, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; }) ;
+                    this.TestSplineExample(chart1, new double[] { -3, -1, 0, 1, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
                     break;
                 case 4:
-                    TestSplineExample(chart1, new double[] { -3, -2.8, -2.7, -2.6, -2.5, -2.4, -2, -1, 0, 1, 2, 2.4, 2.5, 2.6, 2.7, 2.8, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
+                    this.TestSplineExample(chart1, new double[] { -3, -2, -1, 0, 1, 2, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
                     break;
                 case 5:
-                    TestSplineExample(chart1, new double[] { -11, -9, -7, -5, 0, 5, 7, 9, 11 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
+                    this.TestSplineExample(chart1, new double[] { -3, -2.5, -2, -1, 0, 1, 2, 2.5, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
+                    break;
+                case 6:
+                    this.TestSplineExample(chart1, new double[] { -3, -2.8, -2.7, -2.6, -2.5, -2.4, -2, -1, 0, 1, 2, 2.4, 2.5, 2.6, 2.7, 2.8, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
                     break;
                 default:
                     break;
@@ -174,29 +175,33 @@ namespace TestMySpline
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (Double.TryParse(textBox1.Text, out double x) && x > chart1.Series[0].Points[0].XValue && x < chart1.Series[0].Points.Last().XValue)
+            if (Double.TryParse(textBox1.Text, out double x) && x >= chart1.Series[0].Points[0].XValue && x <= chart1.Series[0].Points.Last().XValue)
             {
-                var p = chart1.Series[1].Points;
-                double y;
-                DataPoint prevData = null;
-                foreach (var dataPoint in p)
-                {
-                    if (dataPoint.XValue > x)
-                    {
-                        if (prevData == null)
-                        {
-                            y = dataPoint.YValues[0];
-                        }
-                        else
-                        {
-                            y = prevData.YValues[0] + (dataPoint.YValues[0] - prevData.YValues[0])/(dataPoint.XValue - prevData.XValue)*(x - prevData.XValue);
-                        }
-                        label4.Text = "";
-                        label3.Text = y.ToString();
-                        break;
-                    }
-                    prevData = dataPoint;
-                }
+                var y = Spl.Eval(new double[1] { x }).First();
+                var a = 5;
+                label4.Text = "";
+                label3.Text = y.ToString();
+                //var p = chart1.Series[1].Points;
+                //double y;
+                //DataPoint prevData = null;
+                //foreach (var dataPoint in p)
+                //{
+                //    if (dataPoint.XValue > x)
+                //    {
+                //        if (prevData == null)
+                //        {
+                //            y = dataPoint.YValues[0];
+                //        }
+                //        else
+                //        {
+                //            y = prevData.YValues[0] + (dataPoint.YValues[0] - prevData.YValues[0])/(dataPoint.XValue - prevData.XValue)*(x - prevData.XValue);
+                //        }
+                //        label4.Text = "";
+                //        label3.Text = y.ToString();
+                //        break;
+                //    }
+                //    prevData = dataPoint;
+                //}
             }
             else
             {
