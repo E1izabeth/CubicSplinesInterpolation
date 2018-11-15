@@ -10,13 +10,13 @@ namespace CubicSplinesInterpolation
 {
 	class Program
 	{
-		static void Main(string[] args)
-		{
+        static void Main(string[] args)
+        {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             var vis = new CubicSplinesInterpolation();
             Application.Run(vis);
-		}
+        }
         
 	}
 }

@@ -16,12 +16,12 @@ namespace CubicSplinesInterpolation
     {
 
         // N-1 spline coefficients for N points
-        private double[] a;
-        private double[] b;
+        private double[] _a;
+        private double[] _b;
 
         // Save the original x and y for Eval
-        private double[] xOrig;
-        private double[] yOrig;
+        private double[] _xOrig;
+        private double[] _yOrig;
 
         /// <summary>
         /// Default ctor.
@@ -37,7 +37,7 @@ namespace CubicSplinesInterpolation
         /// <param name="y">Input. Y coordinates to fit.</param>
         public CubicSpline(double[] x, double[] y)
         {
-            Fit(x, y);
+            this.Fit(x, y);
         }
 
 
@@ -46,7 +46,7 @@ namespace CubicSplinesInterpolation
         /// </summary>
         private void CheckAlreadyFitted()
         {
-            if (a == null) throw new Exception("Fit must be called before you can evaluate.");
+            if (_a == null) throw new Exception("Fit must be called before you can evaluate.");
         }
 
         private int _lastIndex = 0;
@@ -58,12 +58,12 @@ namespace CubicSplinesInterpolation
         /// </summary>
         private int GetNextXIndex(double x)
         {
-            if (x < xOrig[_lastIndex])
+            if (x < _xOrig[_lastIndex])
             {
                 throw new ArgumentException("The X values to evaluate must be sorted.");
             }
 
-            while ((_lastIndex < xOrig.Length - 2) && (x > xOrig[_lastIndex + 1]))
+            while ((_lastIndex < _xOrig.Length - 2) && (x > _xOrig[_lastIndex + 1]))
             {
                 _lastIndex++;
             }
@@ -79,9 +79,9 @@ namespace CubicSplinesInterpolation
         /// <returns>The y value.</returns>
         private double EvalSpline(double x, int j)
         {
-            double dx = xOrig[j + 1] - xOrig[j];
-            double t = (x - xOrig[j]) / dx;
-            double y = (1 - t) * yOrig[j] + t * yOrig[j + 1] + t * (1 - t) * (a[j] * (1 - t) + b[j] * t); // equation 9
+            double dx = _xOrig[j + 1] - _xOrig[j];
+            double t = (x - _xOrig[j]) / dx;
+            double y = (1 - t) * _yOrig[j] + t * _yOrig[j + 1] + t * (1 - t) * (_a[j] * (1 - t) + _b[j] * t); // equation 9
             return y;
         }
 
@@ -99,8 +99,8 @@ namespace CubicSplinesInterpolation
 
         public double[] FitAndEval(double[] x, double[] y, double[] xs)
         {
-            Fit(x, y);
-            return Eval(xs);
+            this.Fit(x, y);
+            return this.Eval(xs);
         }
 
         /// <summary>
@@ -114,8 +114,8 @@ namespace CubicSplinesInterpolation
         public void Fit(double[] x, double[] y)
         {
             // Save x and y for eval
-            this.xOrig = x;
-            this.yOrig = y;
+            this._xOrig = x;
+            this._yOrig = y;
 
             int n = x.Length;
             double[] r = new double[n]; // the right hand side numbers: wikipedia page overloads b
@@ -156,15 +156,15 @@ namespace CubicSplinesInterpolation
             double[] k = m.Solve(r);
 
             // a and b are each spline's coefficients
-            this.a = new double[n - 1];
-            this.b = new double[n - 1];
+            this._a = new double[n - 1];
+            this._b = new double[n - 1];
 
             for (int i = 1; i < n; i++)
             {
                 dx1 = x[i] - x[i - 1];
                 dy1 = y[i] - y[i - 1];
-                a[i - 1] = k[i - 1] * dx1 - dy1; // equation 10 from the article
-                b[i - 1] = -k[i] * dx1 + dy1; // equation 11 from the article
+                _a[i - 1] = k[i - 1] * dx1 - dy1; // equation 10 from the article
+                _b[i - 1] = -k[i] * dx1 + dy1; // equation 11 from the article
             }
         }
 
@@ -179,7 +179,7 @@ namespace CubicSplinesInterpolation
         /// <returns>The computed y values for each x.</returns>
         public double[] Eval(double[] x)
         {
-            CheckAlreadyFitted();
+            this.CheckAlreadyFitted();
 
             int n = x.Length;
             double[] y = new double[n];
@@ -188,28 +188,15 @@ namespace CubicSplinesInterpolation
             for (int i = 0; i < n; i++)
             {
                 // Find which spline can be used to compute this x (by simultaneous traverse)
-                int j = GetNextXIndex(x[i]);
+                int j = this.GetNextXIndex(x[i]);
 
                 // Evaluate using j'th spline
-                y[i] = EvalSpline(x[i], j);
+                y[i] = this.EvalSpline(x[i], j);
             }
 
             return y;
         }
         
-
-        /// <summary>
-        /// Static all-in-one method to fit the splines and evaluate at X coordinates.
-        /// </summary>
-        /// <param name="x">Input. X coordinates to fit.</param>
-        /// <param name="y">Input. Y coordinates to fit.</param>
-        /// <param name="xs">Input. X coordinates to evaluate the fitted curve at.</param>
-        /// <returns>The computed y values for each xs.</returns>
-        public double[] Compute(double[] x, double[] y, double[] xs)
-        {
-            return this.FitAndEval(x, y, xs);
-        }
-
         /// <summary>
         /// Fit the input x,y points using the parametric approach, so that y does not have to be an explicit
         /// function of x, meaning there does not need to be a single value of y for each x.
@@ -227,9 +214,7 @@ namespace CubicSplinesInterpolation
             {
                 xs[i] = x[0] + i * step;
             }
-            ys = this.Compute(x, y, xs);
-            //CubicSpline ySpline = new CubicSpline();
-            //ys = ySpline.FitAndEval(dists, y, times);
+            ys = this.FitAndEval(x, y, xs);
         }
     }
 }

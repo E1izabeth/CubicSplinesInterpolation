@@ -41,7 +41,7 @@ namespace CubicSplinesInterpolation
             }
         }
 
-        private Chart TestSplineExample(/*CubicSpline spl, */Chart chart, double[] x, Func<double, double> func)
+        private Chart TestSpline(Chart chart, double[] x, Func<double, double> func)
         {
             double[] y = new double[x.Length];
 
@@ -71,14 +71,16 @@ namespace CubicSplinesInterpolation
 
         private static Chart PlotSplineSolution(Chart chart, string title, double[] x, double[] y, double[] xs, double[] ys, double[] xO, double[] yO, string path)
         {
-            chart.Size = new Size(600, 400);
             chart.Titles.Add(title);
             chart.Legends.Add(new Legend("Legend"));
-
             ChartArea ca = new ChartArea("DefaultChartArea");
             ca.AxisX.Title = "X";
             ca.AxisY.Title = "Y";
             chart.ChartAreas.Add(ca);
+            chart.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
+            chart.ChartAreas[0].AxisY.MajorGrid.Enabled = false;
+            chart.ChartAreas[0].AxisX.Crossing = 0;
+            chart.ChartAreas[0].AxisY.Crossing = 0;
 
             Series s1 = CreateSeries(chart, "Spline", CreateDataPoints(xs, ys), SeriesChartType.Line, Color.Blue, MarkerStyle.None);
             Series s2 = CreateSeries(chart, "Points", CreateDataPoints(x, y), SeriesChartType.Point, Color.Green, MarkerStyle.Diamond);
@@ -89,7 +91,7 @@ namespace CubicSplinesInterpolation
             chart.Series.Add(s1);
             chart.Series.Add(s3);
 
-            //ca.RecalculateAxesScale();
+            ca.RecalculateAxesScale();
             ca.AxisX.Minimum = Math.Floor(ca.AxisX.Minimum);
             ca.AxisX.Maximum = Math.Ceiling(ca.AxisX.Maximum);
             int nIntervals = (x.Length - 1);
@@ -148,25 +150,26 @@ namespace CubicSplinesInterpolation
             switch (listBox1.SelectedIndex)
             {
                 case 0:
-                    this.TestSplineExample(chart1, new double[] { 0, 2, 4, 7 }, Math.Sin);
+                    this.TestSpline(chart1, new double[] { 0, 2, 4, 7 }, Math.Sin);
                     break;
                 case 1:
-                    this.TestSplineExample(chart1, new double[] { 0, 1, 2, 3, 4, 5, 6, 7}, Math.Sin);
+                    this.TestSpline(chart1, new double[] { 0, 1, 2, 3, 4, 5, 6, 7}, Math.Sin);
                     break;
                 case 2:
-                    this.TestSplineExample(chart1, new double[] { -5, 1, 2, 3, 4, 5, 6, 7 }, Math.Sin);
+                    this.TestSpline(chart1, new double[] { -5, 1, 2, 3, 4, 5, 6, 7 }, Math.Sin);
                     break;
                 case 3:
-                    this.TestSplineExample(chart1, new double[] { -3, -1, 0, 1, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
+                    this.TestSpline(chart1, new double[] { -3, -1, 0, 1, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
                     break;
                 case 4:
-                    this.TestSplineExample(chart1, new double[] { -3, -2, -1, 0, 1, 2, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
+                    this.TestSpline(chart1, new double[] { -3, -2, -1, 0, 1, 2, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
                     break;
                 case 5:
-                    this.TestSplineExample(chart1, new double[] { -3, -2.5, -2, -1, 0, 1, 2, 2.5, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
+                    this.TestSpline(chart1, new double[] { -3, -2.5, -2, -1, 0, 1, 2, 2.5, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
                     break;
                 case 6:
-                    this.TestSplineExample(chart1, new double[] { -3, -2.8, -2.7, -2.6, -2.5, -2.4, -2, -1, 0, 1, 2, 2.4, 2.5, 2.6, 2.7, 2.8, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
+                    this.TestSpline(chart1, new double[] { -3, -2.8, -2.7, -2.6, -2.5, -2.4, -2, -1, 0, 1, 2, 2.4, 2.5, 2.6, 2.7, 2.8, 3 }, x => { return x * x * x * x - 9 * x * x + 2 * x; });
+                    //this.TestSpline(chart1, new double[] { -3, -2.8, -2.7, -2.6, -2.5, -2.4, -2, -1, 0, 1, 2, 2.4, 2.5, 2.6, 2.7, 2.8, 3 }, x => { return 1 / x; });
                     break;
                 default:
                     break;
